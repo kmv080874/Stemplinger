@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tidsstempling</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F2A38">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6F1E6;
+    --paper-dark: #ECE4D2;
+    --ink: #1F2A38;
+    --ink-soft: #5B6B80;
+    --accent: #2B4C7E;
+    --accent-dark: #1D3556;
+    --red: #B3392C;
+    --green: #2F6B4F;
+    --line: #D9CFB8;
+    --amber: #B5722A;
+    --amber-dark: #8F5A20;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background: var(--paper-dark);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  body{
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(43,76,126,0.05), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(181,114,42,0.06), transparent 40%);
+    padding: 28px 14px 60px;
+    display:flex; justify-content:center;
+  }
+  .wrap{ width:100%; max-width: 430px; }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    margin: 0 0 2px 0;
+    color: var(--ink);
+  }
+  .subhead{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin: 0 0 18px 0;
+  }
+
+  .saldo-row{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: var(--ink);
+    border-radius: 10px;
+    color: var(--paper);
+  }
+  .saldo-label{
+    font-family:'Fraunces', serif;
+    font-size: 13px;
+    color: #B7C2D1;
+  }
+  .saldo-value{
+    font-size: 20px;
+    font-weight:700;
+    letter-spacing: 0.01em;
+  }
+  .saldo-value.pos{ color:#6FCF97; }
+  .saldo-value.neg{ color:#E8836F; }
+  .saldo-value.zero{ color: var(--paper); }
+
+  /* Period navigator */
+  .period-card{
+    background: var(--ink);
+    border-radius: 10px;
+    color: var(--paper);
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+  }
+  .period-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 8px;
+  }
+  .period-header button{
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--paper);
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .period-header button:hover{ background: rgba(255,255,255,0.16); }
+  .period-label{
+    text-align:center;
+    flex: 1;
+  }
+  .period-label .range{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .period-label .tag{
+    font-size: 10px;
+    color: #9FADC0;
+    margin-top: 1px;
+  }
+  .period-summary{
+    display:flex;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .period-summary div{ flex:1; text-align:center; }
+  .period-summary .k{
+    font-size: 10px; letter-spacing: 0.04em;
+    color: #9FADC0;
+    margin-bottom: 2px;
+  }
+  .period-summary .v{
+    font-size: 16px; font-weight:700;
+  }
+  .period-summary .v.red{ color: #E8836F; }
+  .period-summary .v.green{ color: #6FCF97; }
+
+  .alltime-line{
+    text-align:center;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin: -6px 0 12px;
+  }
+  .alltime-line .val.pos{ color: var(--green); font-weight:600; }
+  .alltime-line .val.neg{ color: var(--red); font-weight:600; }
+
+  .backup-row{
+    display:flex; gap:8px;
+    margin-bottom: 20px;
+  }
+  .btn.backup{
+    flex:1;
+    background: none;
+    border: 1px dashed var(--line);
+    color: var(--ink-soft);
+    border-radius: 10px;
+    padding: 9px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .btn.backup:hover{ color: var(--ink); border-color: var(--ink-soft); }
+
+  /* Ticket / punch card */
+  .ticket{
+    position: relative;
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 20px 20px 8px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.03), 0 10px 24px -14px rgba(31,42,56,0.35);
+  }
+  .ticket::before, .ticket::after{
+    content:"";
+    position:absolute; left:0; right:0; height:12px;
+    background: radial-gradient(circle, var(--paper-dark) 5px, transparent 5.5px);
+    background-size: 16px 12px;
+    background-repeat: repeat-x;
+  }
+  .ticket::before{ top:-6px; }
+  .ticket::after{ bottom:-6px; background-position: 8px 0; }
+
+  .datebar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:8px;
+    margin-bottom: 6px;
+  }
+  .datebar button{
+    background:none; border: 1px solid var(--line);
+    color: var(--ink);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .datebar button:hover{ background: var(--paper-dark); }
+  .date-main{
+    text-align:center;
+    flex: 1;
+  }
+  .date-main .day{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 18px;
+    text-transform: capitalize;
+  }
+  .date-main .day.today-tag::after{
+    content: " · i dag";
+    font-family:'JetBrains Mono', monospace;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  input[type=date]{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    border:none; background:none;
+    text-align:center;
+    margin-top: 1px;
+  }
+
+  .normal-line{
+    text-align:center;
+    font-size: 11px;
+    color: var(--ink-soft);
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--line);
+    margin-bottom: 14px;
+  }
+
+  .stamps{
+    list-style:none; margin:0; padding:0;
+    min-height: 36px;
+  }
+  .stamps li{
+    display:flex; align-items:center; gap: 10px;
+    padding: 8px 2px;
+    border-bottom: 1px dotted var(--line);
+    font-size: 14px;
+  }
+  .stamps li:last-child{ border-bottom:none; }
+  .stamp-dot{
+    width: 9px; height:9px; border-radius:50%;
+    flex-shrink:0;
+  }
+  .stamp-dot.in{ background: var(--accent); }
+  .stamp-dot.out{ background: var(--ink); }
+  .stamp-dot.break_start, .stamp-dot.break_end{ background: var(--amber); }
+  .stamp-time{ font-weight:600; letter-spacing: 0.02em; }
+  .stamp-label{ color: var(--ink-soft); flex:1; font-family:'Fraunces', serif; font-size: 14px;}
+  .stamp-icon-btn{
+    background:none; border:none; color: var(--ink-soft);
+    cursor:pointer; font-size: 13px; padding: 2px 6px;
+    opacity: 0.5;
+  }
+  .stamp-icon-btn:hover{ opacity:1; }
+  .stamp-icon-btn.del:hover{ color: var(--red); }
+  .stamp-icon-btn.edit:hover{ color: var(--accent); }
+  .stamp-icon-btn.save{ color: var(--green); opacity:0.85; font-size:16px; }
+  .stamp-icon-btn.cancel{ color: var(--red); opacity:0.85; }
+
+  .stamp-time-input{
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ink);
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+    padding: 2px 4px;
+    width: 84px;
+    background: #fff;
+  }
+
+  .export-row{
+    margin-bottom: 18px;
+    display: flex;
+    gap: 8px;
+  }
+  .btn.export{
+    flex: 1;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 12px 6px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .btn.export:hover{ background: var(--paper-dark); }
+  .btn.export:active{ transform: scale(0.98); }
+
+  .empty-note{
+    text-align:center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 18px 0;
+    font-family: 'Fraunces', serif;
+  }
+
+  .summary{
+    display:flex;
+    margin-top: 10px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+  .summary div{
+    flex:1; text-align:center;
+  }
+  .summary .k{
+    font-size: 10px; letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+  .summary .v{
+    font-size: 17px; font-weight:700;
+  }
+  .summary .v.red{ color: var(--red); }
+  .summary .v.green{ color: var(--green); }
+
+  .actions{
+    display:flex; gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+  .btn{
+    flex:1;
+    border:none;
+    border-radius: 10px;
+    padding: 16px 8px;
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor:pointer;
+    color: var(--paper);
+    transition: transform 0.08s ease;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn:disabled{ opacity: 0.35; cursor:not-allowed; }
+  .btn.clock{ background: var(--accent-dark); flex: 1.3; }
+  .btn.clock.active-out{ background: var(--red); }
+  .btn.pause{ background: var(--amber-dark); }
+  .btn.pause.active{ background: var(--amber); }
+
+  .not-today-note{
+    text-align:center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 16px 0 4px;
+    font-family: 'Fraunces', serif;
+  }
+
+  .live-tag{
+    font-size: 10px;
+    color: var(--accent);
+    margin-left: 4px;
+  }
+
+  footer{
+    text-align:center;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tidsstempling</h1>
+  <p class="subhead">Ind, pause og ud — med afvigelse fra normal arbejdstid</p>
+
+  <div class="period-card">
+    <div class="period-header">
+      <button id="prevPeriod" aria-label="Forrige periode">‹</button>
+      <div class="period-label">
+        <div class="range" id="periodRange">…</div>
+        <div class="tag">lønperiode: d. 20. – d. 19. næste måned</div>
+      </div>
+      <button id="nextPeriod" aria-label="Næste periode">›</button>
+    </div>
+    <div class="period-summary">
+      <div>
+        <div class="k">ARBEJDET</div>
+        <div class="v" id="periodWorked">–</div>
+      </div>
+      <div>
+        <div class="k">NORMAL</div>
+        <div class="v" id="periodNormal">–</div>
+      </div>
+      <div>
+        <div class="k">AFVIGELSE</div>
+        <div class="v" id="periodDiff">–</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="export-row">
+    <button class="btn export" id="exportPeriodBtn">📄 Eksporter denne periode</button>
+    <button class="btn export" id="exportAllBtn">📄 Eksporter alt</button>
+  </div>
+
+  <div class="alltime-line" id="alltimeLine"></div>
+
+  <div class="backup-row">
+    <button class="btn backup" id="backupBtn">💾 Gem backup</button>
+    <button class="btn backup" id="restoreBtn">📤 Gendan backup</button>
+    <input type="file" id="restoreInput" accept="application/json" style="display:none;">
+  </div>
+
+  <div class="ticket">
+    <div class="datebar">
+      <button id="prevDay" aria-label="Forrige dag">‹</button>
+      <div class="date-main">
+        <div class="day" id="dayLabel"></div>
+        <input type="date" id="dateInput">
+      </div>
+      <button id="nextDay" aria-label="Næste dag">›</button>
+    </div>
+    <div class="normal-line" id="normalLine"></div>
+
+    <ul class="stamps" id="stampsList"></ul>
+    <div class="empty-note" id="emptyNote" style="display:none;">Ingen stemplinger denne dag</div>
+
+    <div class="summary">
+      <div>
+        <div class="k">ARBEJDET</div>
+        <div class="v" id="workedVal">–</div>
+      </div>
+      <div>
+        <div class="k">NORMAL</div>
+        <div class="v" id="normalVal">–</div>
+      </div>
+      <div>
+        <div class="k">AFVIGELSE</div>
+        <div class="v" id="diffVal">–</div>
+      </div>
+    </div>
+
+    <div class="actions" id="actionsRow">
+      <button class="btn clock" id="clockBtn">Stempl ind</button>
+      <button class="btn pause" id="pauseBtn">Start pause</button>
+    </div>
+    <div class="not-today-note" id="notTodayNote" style="display:none;">
+      Du kan kun stemple ind/ud og pause på dagens dato
+    </div>
+  </div>
+
+  <footer>Gemt automatisk på denne enhed</footer>
+</div>
+
+<script>
+(function(){
+  const WEEKDAYS = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
+  const pad = n => String(n).padStart(2,'0');
+  const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+  const storageKey = dk => `stamps:${dk}`;
+
+  function normalMinutes(date){
+    const day = date.getDay();
+    if(day>=1 && day<=4) return 450; // mandag-torsdag: 7,5 timer
+    if(day===5) return 420; // fredag: 7 timer
+    return 0; // weekend
+  }
+  function normalRangeLabel(date){
+    const day = date.getDay();
+    if(day>=1 && day<=4) return "Normal: 06:55–15:00 (7,5 t)";
+    if(day===5) return "Normal: 06:55–14:30 (7,0 t)";
+    return "Ingen normal arbejdstid (weekend)";
+  }
+  function fmtHM(totalMinutes, signed){
+    const sign = totalMinutes < 0 ? -1 : 1;
+    const abs = Math.abs(Math.round(totalMinutes));
+    const h = Math.floor(abs/60), m = abs%60;
+    const base = `${h}:${pad(m)}`;
+    if(!signed) return base;
+    return (sign<0 ? "-" : "+") + base;
+  }
+  function fmtClock(ts){
+    const d = new Date(ts);
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  const LABELS = { in: "Ind", out: "Ud", break_start: "Pause start", break_end: "Pause slut" };
+
+  // events: sorted array of {type, ts}. Returns {workedMs, openSince (ts or null), onBreak}
+  function computeWorked(events, nowTs){
+    const sorted = [...events].sort((a,b)=>a.ts-b.ts);
+    let worked = 0, resumeAt = null, onBreak = false, clockedIn = false;
+    for(const e of sorted){
+      if(e.type === 'in'){ resumeAt = e.ts; clockedIn = true; onBreak = false; }
+      else if(e.type === 'break_start'){
+        if(resumeAt != null){ worked += e.ts - resumeAt; resumeAt = null; }
+        onBreak = true;
+      } else if(e.type === 'break_end'){
+        resumeAt = e.ts; onBreak = false;
+      } else if(e.type === 'out'){
+        if(resumeAt != null){ worked += e.ts - resumeAt; resumeAt = null; }
+        clockedIn = false; onBreak = false;
+      }
+    }
+    let openSince = (clockedIn && !onBreak) ? resumeAt : null;
+    if(openSince != null && nowTs){ worked += Math.max(0, nowTs - openSince); }
+    return { workedMs: worked, clockedIn, onBreak };
+  }
+
+  function lastStatus(events){
+    if(!events.length) return 'out';
+    const sorted = [...events].sort((a,b)=>a.ts-b.ts);
+    const last = sorted[sorted.length-1];
+    if(last.type === 'in' || last.type === 'break_end') return 'in';
+    if(last.type === 'break_start') return 'break';
+    return 'out';
+  }
+
+  const todayKey = dateKey(new Date());
+  let selectedKey = todayKey;
+  let cache = {}; // dateKey -> events array
+  let saldoMs = null;
+  let tickHandle = null;
+  let editingIdx = null;
+  let periodOffset = 0; // 0 = the pay period containing today
+
+  const MONTHS_SHORT = ["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"];
+
+  // Pay period: starts the 19th of a month, runs through the 18th of the next month.
+  function getPeriodBounds(offset){
+    const now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth();
+    if(now.getDate() < 20){ month -= 1; }
+    month += offset;
+    while(month < 0){ month += 12; year -= 1; }
+    while(month > 11){ month -= 12; year += 1; }
+    const start = new Date(year, month, 20);
+    const end = new Date(year, month + 1, 19);
+    return { start, end };
+  }
+  function inPeriod(date, bounds){
+    return date.getTime() >= bounds.start.getTime() && date.getTime() <= bounds.end.getTime();
+  }
+  function periodLabel(bounds){
+    const s = bounds.start, e = bounds.end;
+    return `${s.getDate()}. ${MONTHS_SHORT[s.getMonth()]} – ${e.getDate()}. ${MONTHS_SHORT[e.getMonth()]} ${e.getFullYear()}`;
+  }
+
+  // Persistence via localStorage, so data survives closing the app/browser.
+  async function loadDay(dk){
+    if(cache[dk]) return cache[dk];
+    try{
+      const raw = localStorage.getItem(storageKey(dk));
+      const events = raw ? JSON.parse(raw) : [];
+      cache[dk] = events;
+      return events;
+    }catch(e){
+      cache[dk] = [];
+      return [];
+    }
+  }
+
+  async function saveDay(dk, events){
+    cache[dk] = events;
+    try{
+      localStorage.setItem(storageKey(dk), JSON.stringify(events));
+    }catch(e){
+      console.error('Kunne ikke gemme stempling', e);
+    }
+  }
+
+  function allStampKeys(){
+    const keys = [];
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('stamps:')) keys.push(k);
+    }
+    return keys;
+  }
+
+  async function computeSaldo(){
+    let total = 0;
+    try{
+      const keys = allStampKeys();
+      for(const k of keys){
+        const dk = k.slice('stamps:'.length);
+        const events = cache[dk] || await loadDay(dk);
+        if(!events.length) continue;
+        const date = parseKey(dk);
+        const isToday = dk === todayKey;
+        const { workedMs } = computeWorked(events, isToday ? Date.now() : null);
+        const normalMs = normalMinutes(date) * 60000;
+        total += (workedMs - normalMs);
+      }
+    }catch(e){
+      console.error('Kunne ikke beregne saldo', e);
+    }
+    saldoMs = total;
+    renderSaldo();
+  }
+
+  function renderSaldo(){
+    const el = document.getElementById('alltimeLine');
+    if(saldoMs === null){ el.innerHTML = ''; return; }
+    const mins = saldoMs/60000;
+    const cls = mins > 0.5 ? 'pos' : mins < -0.5 ? 'neg' : '';
+    el.innerHTML = `Alt i alt (alle registreringer): <span class="val ${cls}">${fmtHM(mins, true)}</span>`;
+  }
+
+  // Gathers every stored day that falls inside a pay period, with computed totals.
+  async function getPeriodData(bounds){
+    const keys = allStampKeys().map(k => k.slice('stamps:'.length)).sort();
+    const days = [];
+    let workedMs = 0, normalMs = 0;
+    for(const dk of keys){
+      const date = parseKey(dk);
+      if(!inPeriod(date, bounds)) continue;
+      const events = cache[dk] || await loadDay(dk);
+      if(!events.length) continue;
+      const isToday = dk === todayKey;
+      const w = computeWorked(events, isToday ? Date.now() : null);
+      const n = normalMinutes(date) * 60000;
+      workedMs += w.workedMs;
+      normalMs += n;
+      days.push({ dk, date, events, workedMs: w.workedMs, normalMs: n });
+    }
+    return { days, workedMs, normalMs, diffMs: workedMs - normalMs };
+  }
+
+  async function renderPeriod(){
+    const bounds = getPeriodBounds(periodOffset);
+    document.getElementById('periodRange').textContent = periodLabel(bounds);
+    const { workedMs, normalMs, diffMs } = await getPeriodData(bounds);
+    document.getElementById('periodWorked').textContent = fmtHM(workedMs/60000, false);
+    document.getElementById('periodNormal').textContent = fmtHM(normalMs/60000, false);
+    const diffEl = document.getElementById('periodDiff');
+    diffEl.textContent = fmtHM(diffMs/60000, true);
+    diffEl.className = 'v ' + (diffMs < -30000 ? 'red' : diffMs > 30000 ? 'green' : '');
+  }
+
+  function stopTick(){ if(tickHandle){ clearInterval(tickHandle); tickHandle = null; } }
+
+  async function render(){
+    const date = parseKey(selectedKey);
+    const isToday = selectedKey === todayKey;
+    document.getElementById('dateInput').value = selectedKey;
+    const dayLabelEl = document.getElementById('dayLabel');
+    dayLabelEl.textContent = `${WEEKDAYS[date.getDay()]} ${date.getDate()}. ${date.toLocaleDateString('da-DK',{month:'long'})}`;
+    dayLabelEl.className = 'day' + (isToday ? ' today-tag' : '');
+    document.getElementById('normalLine').textContent = normalRangeLabel(date);
+
+    const events = await loadDay(selectedKey);
+    const listEl = document.getElementById('stampsList');
+    const emptyEl = document.getElementById('emptyNote');
+    listEl.innerHTML = '';
+    const sorted = [...events].sort((a,b)=>a.ts-b.ts);
+    if(sorted.length === 0){
+      emptyEl.style.display = 'block';
+    }else{
+      emptyEl.style.display = 'none';
+      sorted.forEach((e, idx) => {
+        const li = document.createElement('li');
+        if(idx === editingIdx){
+          li.innerHTML = `
+            <span class="stamp-dot ${e.type}"></span>
+            <input type="time" class="stamp-time-input" value="${fmtClock(e.ts)}">
+            <span class="stamp-label">${LABELS[e.type]}</span>
+            <button class="stamp-icon-btn save" data-idx="${idx}" title="Gem">✓</button>
+            <button class="stamp-icon-btn cancel" data-idx="${idx}" title="Annuller">⨯</button>
+          `;
+        } else {
+          li.innerHTML = `
+            <span class="stamp-dot ${e.type}"></span>
+            <span class="stamp-time">${fmtClock(e.ts)}</span>
+            <span class="stamp-label">${LABELS[e.type]}</span>
+            <button class="stamp-icon-btn edit" data-idx="${idx}" title="Ret tidspunkt">✎</button>
+            <button class="stamp-icon-btn del" data-idx="${idx}" title="Slet stempling">✕</button>
+          `;
+        }
+        listEl.appendChild(li);
+      });
+    }
+
+    function updateNumbers(){
+      const nowTs = isToday ? Date.now() : null;
+      const { workedMs, clockedIn, onBreak } = computeWorked(events, nowTs);
+      const normalMs = normalMinutes(date) * 60000;
+      const diffMs = workedMs - normalMs;
+
+      document.getElementById('workedVal').innerHTML = fmtHM(workedMs/60000, false) +
+        ((isToday && clockedIn && !onBreak) ? '<span class="live-tag">●</span>' : '');
+      document.getElementById('normalVal').textContent = normalMs > 0 ? fmtHM(normalMs/60000, false) : '–';
+      const diffEl = document.getElementById('diffVal');
+      if(normalMs === 0 && workedMs === 0){
+        diffEl.textContent = '–';
+        diffEl.className = 'v';
+      } else {
+        diffEl.textContent = fmtHM(diffMs/60000, true);
+        diffEl.className = 'v ' + (diffMs < 0 ? 'red' : diffMs > 0 ? 'green' : '');
+      }
+    }
+    updateNumbers();
+    stopTick();
+    if(isToday){
+      tickHandle = setInterval(updateNumbers, 1000);
+    }
+
+    // Buttons
+    const status = lastStatus(events);
+    const clockBtn = document.getElementById('clockBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const actionsRow = document.getElementById('actionsRow');
+    const notTodayNote = document.getElementById('notTodayNote');
+
+    if(!isToday){
+      actionsRow.style.display = 'none';
+      notTodayNote.style.display = 'block';
+    } else {
+      actionsRow.style.display = 'flex';
+      notTodayNote.style.display = 'none';
+
+      if(status === 'out'){
+        clockBtn.textContent = 'Stempl ind';
+        clockBtn.className = 'btn clock';
+        pauseBtn.disabled = true;
+        pauseBtn.textContent = 'Start pause';
+        pauseBtn.className = 'btn pause';
+      } else if(status === 'in'){
+        clockBtn.textContent = 'Stempl ud';
+        clockBtn.className = 'btn clock active-out';
+        pauseBtn.disabled = false;
+        pauseBtn.textContent = 'Start pause';
+        pauseBtn.className = 'btn pause';
+      } else if(status === 'break'){
+        clockBtn.textContent = 'Stempl ud';
+        clockBtn.className = 'btn clock active-out';
+        pauseBtn.disabled = false;
+        pauseBtn.textContent = 'Afslut pause';
+        pauseBtn.className = 'btn pause active';
+      }
+    }
+
+    // Edit handlers
+    listEl.querySelectorAll('.stamp-icon-btn.edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingIdx = Number(btn.getAttribute('data-idx'));
+        render();
+      });
+    });
+    listEl.querySelectorAll('.stamp-icon-btn.cancel').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingIdx = null;
+        render();
+      });
+    });
+    listEl.querySelectorAll('.stamp-icon-btn.save').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = Number(btn.getAttribute('data-idx'));
+        const input = listEl.querySelector('.stamp-time-input');
+        if(!input || !input.value) return;
+        const [hh, mm] = input.value.split(':').map(Number);
+        const sorted2 = [...cache[selectedKey]].sort((a,b)=>a.ts-b.ts);
+        const newTs = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hh, mm, 0, 0).getTime();
+        sorted2[idx] = { ...sorted2[idx], ts: newTs };
+        await saveDay(selectedKey, sorted2);
+        editingIdx = null;
+        await render();
+        await computeSaldo();
+        await renderPeriod();
+      });
+    });
+    // Delete handlers
+    listEl.querySelectorAll('.stamp-icon-btn.del').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const idx = Number(btn.getAttribute('data-idx'));
+        const sorted2 = [...cache[selectedKey]].sort((a,b)=>a.ts-b.ts);
+        sorted2.splice(idx, 1);
+        await saveDay(selectedKey, sorted2);
+        editingIdx = null;
+        await render();
+        await computeSaldo();
+        await renderPeriod();
+      });
+    });
+  }
+
+  async function addEvent(dk, type){
+    const events = await loadDay(dk);
+    events.push({ type, ts: Date.now() });
+    await saveDay(dk, events);
+  }
+
+  document.getElementById('clockBtn').addEventListener('click', async () => {
+    const events = await loadDay(todayKey);
+    const status = lastStatus(events);
+    if(status === 'out'){
+      await addEvent(todayKey, 'in');
+    } else if(status === 'break'){
+      // end break then clock out
+      const evs = await loadDay(todayKey);
+      evs.push({ type: 'break_end', ts: Date.now() });
+      evs.push({ type: 'out', ts: Date.now()+1 });
+      await saveDay(todayKey, evs);
+    } else {
+      await addEvent(todayKey, 'out');
+    }
+    await render();
+    await computeSaldo();
+        await renderPeriod();
+  });
+
+  document.getElementById('pauseBtn').addEventListener('click', async () => {
+    const events = await loadDay(todayKey);
+    const status = lastStatus(events);
+    if(status === 'in'){
+      await addEvent(todayKey, 'break_start');
+    } else if(status === 'break'){
+      await addEvent(todayKey, 'break_end');
+    }
+    await render();
+    await computeSaldo();
+        await renderPeriod();
+  });
+
+  document.getElementById('prevDay').addEventListener('click', () => {
+    const d = parseKey(selectedKey);
+    d.setDate(d.getDate()-1);
+    selectedKey = dateKey(d);
+    editingIdx = null;
+    render();
+  });
+  document.getElementById('nextDay').addEventListener('click', () => {
+    const d = parseKey(selectedKey);
+    d.setDate(d.getDate()+1);
+    selectedKey = dateKey(d);
+    editingIdx = null;
+    render();
+  });
+  document.getElementById('dateInput').addEventListener('change', (e) => {
+    if(e.target.value){
+      selectedKey = e.target.value;
+      editingIdx = null;
+      render();
+    }
+  });
+
+  document.getElementById('prevPeriod').addEventListener('click', () => {
+    periodOffset -= 1;
+    renderPeriod();
+  });
+  document.getElementById('nextPeriod').addEventListener('click', () => {
+    periodOffset += 1;
+    renderPeriod();
+  });
+
+  function periodKeyForDate(date){
+    let year = date.getFullYear();
+    let month = date.getMonth();
+    if(date.getDate() < 20){ month -= 1; }
+    while(month < 0){ month += 12; year -= 1; }
+    return `${year}-${pad(month+1)}`;
+  }
+  function boundsFromPeriodKey(key){
+    const [y, m] = key.split('-').map(Number);
+    const start = new Date(y, m-1, 20);
+    const end = new Date(y, m, 19);
+    return { start, end };
+  }
+
+  function buildDayLines(dk, date, events, workedMs, normalMs){
+    const lines = [];
+    const sorted = [...events].sort((a,b)=>a.ts-b.ts);
+    const diffMs = workedMs - normalMs;
+    const dayName = WEEKDAYS[date.getDay()];
+    lines.push(`${dayName.charAt(0).toUpperCase()+dayName.slice(1)} ${pad(date.getDate())}-${pad(date.getMonth()+1)}-${date.getFullYear()}`);
+    sorted.forEach(e => lines.push(`   ${fmtClock(e.ts)}   ${LABELS[e.type]}`));
+    lines.push(`   Arbejdet: ${fmtHM(workedMs/60000,false).padEnd(6)}  Normal: ${(normalMs>0?fmtHM(normalMs/60000,false):'–').padEnd(6)}  Afvigelse: ${fmtHM(diffMs/60000,true)}`);
+    lines.push('');
+    return lines;
+  }
+
+  function downloadText(filename, content){
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function buildPeriodExportText(bounds){
+    const { days, workedMs, normalMs, diffMs } = await getPeriodData(bounds);
+    if(days.length === 0) return null;
+    const lines = [];
+    lines.push('TIDSSTEMPLING — LØNPERIODE');
+    lines.push(`Periode: ${periodLabel(bounds)}`);
+    lines.push('Eksporteret: ' + new Date().toLocaleString('da-DK'));
+    lines.push('='.repeat(44));
+    lines.push('');
+    days.forEach(d => lines.push(...buildDayLines(d.dk, d.date, d.events, d.workedMs, d.normalMs)));
+    lines.push('='.repeat(44));
+    lines.push(`Periodesaldo: ${fmtHM(diffMs/60000, true)}  (arbejdet ${fmtHM(workedMs/60000,false)} / normal ${fmtHM(normalMs/60000,false)})`);
+    return lines.join('\n');
+  }
+
+  document.getElementById('exportPeriodBtn').addEventListener('click', async () => {
+    const bounds = getPeriodBounds(periodOffset);
+    const text = await buildPeriodExportText(bounds);
+    if(!text){
+      alert('Der er ingen stemplinger i denne periode endnu.');
+      return;
+    }
+    downloadText(`stemplinger/tidsstempling_periode_${dateKey(bounds.start)}.txt`, text);
+  });
+
+  // Auto-export: the very first time the app is opened after a new pay period
+  // has begun, automatically save last period's document — so it happens
+  // once a month, right when a new period starts, with no manual step needed.
+  const AUTO_EXPORT_KEY = 'lastAutoExportPeriod';
+  async function checkAutoExport(){
+    try{
+      const prevBounds = getPeriodBounds(-1);
+      const prevKey = `${prevBounds.start.getFullYear()}-${pad(prevBounds.start.getMonth()+1)}`;
+      if(localStorage.getItem(AUTO_EXPORT_KEY) === prevKey) return;
+      const text = await buildPeriodExportText(prevBounds);
+      if(text){
+        downloadText(`stemplinger/tidsstempling_periode_${dateKey(prevBounds.start)}.txt`, text);
+        localStorage.setItem(AUTO_EXPORT_KEY, prevKey);
+        alert(`Ny lønperiode startet. Tidsdokumentet for ${periodLabel(prevBounds)} er automatisk gemt i Downloads/stemplinger.`);
+      }
+    }catch(e){
+      console.error('Automatisk eksport fejlede', e);
+    }
+  }
+
+  document.getElementById('exportAllBtn').addEventListener('click', async () => {
+    const keys = allStampKeys().map(k => k.slice('stamps:'.length)).sort();
+    if(keys.length === 0){
+      alert('Der er endnu ingen stemplinger at eksportere.');
+      return;
+    }
+    const lines = [];
+    lines.push('TIDSSTEMPLING — FULD OVERSIGT (pr. lønperiode: d. 20. – d. 19. næste måned)');
+    lines.push('Eksporteret: ' + new Date().toLocaleString('da-DK'));
+    lines.push('='.repeat(44));
+    lines.push('');
+
+    let currentPeriodKey = null;
+    let periodWorked = 0, periodNormal = 0;
+    let grandDiffMs = 0;
+
+    const flushPeriod = () => {
+      if(currentPeriodKey === null) return;
+      const bounds = boundsFromPeriodKey(currentPeriodKey);
+      const diff = periodWorked - periodNormal;
+      lines.push(`— Periodesaldo (${periodLabel(bounds)}): ${fmtHM(diff/60000, true)}`);
+      lines.push('-'.repeat(44));
+      lines.push('');
+      grandDiffMs += diff;
+      periodWorked = 0; periodNormal = 0;
+    };
+
+    for(const dk of keys){
+      const events = await loadDay(dk);
+      if(!events.length) continue;
+      const date = parseKey(dk);
+      const pk = periodKeyForDate(date);
+      if(pk !== currentPeriodKey){
+        flushPeriod();
+        currentPeriodKey = pk;
+        const bounds = boundsFromPeriodKey(pk);
+        lines.push(`LØNPERIODE: ${periodLabel(bounds)}`);
+        lines.push('');
+      }
+      const isToday = dk === todayKey;
+      const { workedMs } = computeWorked(events, isToday ? Date.now() : null);
+      const normalMs = normalMinutes(date) * 60000;
+      periodWorked += workedMs;
+      periodNormal += normalMs;
+      lines.push(...buildDayLines(dk, date, events, workedMs, normalMs));
+    }
+    flushPeriod();
+
+    lines.push('='.repeat(44));
+    lines.push(`Alt i alt: ${fmtHM(grandDiffMs/60000, true)}`);
+    downloadText(`stemplinger/tidsstempling_alt_${todayKey}.txt`, lines.join('\n'));
+  });
+
+  document.getElementById('backupBtn').addEventListener('click', () => {
+    const keys = allStampKeys();
+    if(keys.length === 0){
+      alert('Der er ingen stemplinger at lave backup af endnu.');
+      return;
+    }
+    const stamps = {};
+    keys.forEach(k => { stamps[k] = JSON.parse(localStorage.getItem(k)); });
+    const payload = { exportedAt: new Date().toISOString(), stamps };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stemplinger/tidsstempling_backup_${todayKey}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('restoreBtn').addEventListener('click', () => {
+    document.getElementById('restoreInput').click();
+  });
+
+  document.getElementById('restoreInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      const stamps = payload.stamps || payload;
+      let count = 0;
+      Object.keys(stamps).forEach(k => {
+        if(k.startsWith('stamps:')){
+          localStorage.setItem(k, JSON.stringify(stamps[k]));
+          count++;
+        }
+      });
+      cache = {};
+      editingIdx = null;
+      await render();
+      await computeSaldo();
+      await renderPeriod();
+      alert(`Backup gendannet: ${count} dage tilføjet.`);
+    }catch(err){
+      alert('Kunne ikke læse backup-filen. Sørg for det er en .json-fil eksporteret fra denne app.');
+    }
+    e.target.value = '';
+  });
+
+  render();
+  computeSaldo();
+  renderPeriod();
+  checkAutoExport();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(err => {
+        console.log('Service worker kunne ikke registreres', err);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
