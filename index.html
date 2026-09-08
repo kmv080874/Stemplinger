@@ -393,8 +393,9 @@
   </div>
 
   <div class="export-row">
-    <button class="btn export" id="exportPeriodBtn">📄 Eksporter denne periode</button>
-    <button class="btn export" id="exportAllBtn">📄 Eksporter alt</button>
+    <button class="btn export" id="printPeriodBtn">🖨️ Udskriv (A4)</button>
+    <button class="btn export" id="exportPeriodBtn">📄 Eksporter</button>
+    <button class="btn export" id="exportAllBtn">📄 Alt</button>
   </div>
 
   <div class="alltime-line" id="alltimeLine"></div>
@@ -910,6 +911,91 @@
       return;
     }
     downloadText(`stemplinger/tidsstempling_periode_${dateKey(bounds.start)}.txt`, text);
+  });
+
+  function buildPrintRow(d){
+    const sorted = [...d.events].sort((a,b)=>a.ts-b.ts);
+    const stampsStr = sorted.map(e => `${fmtClock(e.ts)} ${LABELS[e.type]}`).join(' · ');
+    const diffMs = d.workedMs - d.normalMs;
+    const cls = diffMs < -30000 ? 'neg' : diffMs > 30000 ? 'pos' : '';
+    const dayName = WEEKDAYS[d.date.getDay()];
+    return `<tr>
+      <td class="dcell">${dayName.charAt(0).toUpperCase()+dayName.slice(1).slice(0,2)} ${pad(d.date.getDate())}-${pad(d.date.getMonth()+1)}</td>
+      <td class="scell">${stampsStr || '–'}</td>
+      <td class="ncell">${fmtHM(d.workedMs/60000,false)}</td>
+      <td class="ncell">${d.normalMs>0 ? fmtHM(d.normalMs/60000,false) : '–'}</td>
+      <td class="ncell ${cls}">${fmtHM(diffMs/60000,true)}</td>
+    </tr>`;
+  }
+
+  async function openPrintView(bounds){
+    const { days, workedMs, normalMs, diffMs } = await getPeriodData(bounds);
+    if(days.length === 0){
+      alert('Der er ingen stemplinger i denne periode endnu.');
+      return;
+    }
+    const rows = days.map(buildPrintRow).join('');
+    const totalCls = diffMs < -30000 ? 'neg' : diffMs > 30000 ? 'pos' : '';
+    const html = `<!DOCTYPE html>
+<html lang="da"><head><meta charset="UTF-8">
+<title>Tidsstempling – ${periodLabel(bounds)}</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  *{ box-sizing:border-box; }
+  body{
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: #1F2A38;
+    margin: 0;
+    padding: 0;
+  }
+  h1{ font-size: 20px; margin: 0 0 2px; }
+  .sub{ font-size: 12px; color:#5B6B80; margin: 0 0 18px; font-family: 'Courier New', monospace; }
+  table{ width:100%; border-collapse: collapse; font-family:'Courier New', monospace; font-size: 12px; }
+  th{ text-align:left; border-bottom: 2px solid #1F2A38; padding: 6px 4px; font-family: 'Georgia', serif; font-size: 12px; }
+  td{ padding: 6px 4px; border-bottom: 1px solid #D9CFB8; vertical-align: top; }
+  td.dcell{ white-space:nowrap; font-weight:bold; }
+  td.ncell{ text-align:right; white-space:nowrap; }
+  td.scell{ color:#333; }
+  .pos{ color:#2F6B4F; font-weight:bold; }
+  .neg{ color:#B3392C; font-weight:bold; }
+  tfoot td{ border-top: 2px solid #1F2A38; border-bottom:none; font-weight:bold; padding-top:10px; }
+  .footnote{ margin-top: 24px; font-size: 11px; color:#5B6B80; font-family:'Courier New', monospace; }
+  @media print{
+    .noprint{ display:none; }
+  }
+  .noprint{ margin-bottom: 16px; }
+  .noprint button{ font-family: Georgia, serif; padding: 8px 16px; font-size:14px; cursor:pointer; }
+</style></head>
+<body>
+  <div class="noprint"><button onclick="window.print()">🖨️ Udskriv / gem som PDF</button></div>
+  <h1>Tidsstempling</h1>
+  <div class="sub">Lønperiode: ${periodLabel(bounds)} &nbsp;·&nbsp; Udskrevet: ${new Date().toLocaleDateString('da-DK')}</div>
+  <table>
+    <thead><tr>
+      <th>Dato</th><th>Stemplinger</th><th style="text-align:right;">Arbejdet</th><th style="text-align:right;">Normal</th><th style="text-align:right;">Afvigelse</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr>
+      <td colspan="2">I alt</td>
+      <td class="ncell">${fmtHM(workedMs/60000,false)}</td>
+      <td class="ncell">${fmtHM(normalMs/60000,false)}</td>
+      <td class="ncell ${totalCls}">${fmtHM(diffMs/60000,true)}</td>
+    </tr></tfoot>
+  </table>
+  <div class="footnote">Genereret automatisk af Tidsstempling-appen.</div>
+</body></html>`;
+    const win = window.open('', '_blank');
+    if(!win){
+      alert('Kunne ikke åbne udskriftsvisning — tjek om din browser blokerer pop op-vinduer.');
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  document.getElementById('printPeriodBtn').addEventListener('click', () => {
+    openPrintView(getPeriodBounds(periodOffset));
   });
 
   // Auto-export: the very first time the app is opened after a new pay period
