@@ -40,14 +40,14 @@
       "short_name": "Stempl",
       "description": "Registrer indstempling eller udstempling med det samme",
       "url": "./index.html?action=clock",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-clock-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Pause",
       "short_name": "Pause",
       "description": "Start eller afslut pause med det samme",
       "url": "./index.html?action=pause",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-pause-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Se lønperiode",
