@@ -39,6 +39,139 @@
   }
   .wrap{ width:100%; max-width: 430px; }
 
+  .app-header-row{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    gap: 10px;
+  }
+  .gear-btn{
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .gear-btn:active{ transform: scale(0.94); }
+
+  /* Flip transition */
+  .flip-scene{ perspective: 1600px; }
+  .flip-card{
+    position: relative;
+    width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(.5,.1,.2,1), height 0.7s ease;
+  }
+  .flip-card.flipped{ transform: rotateY(180deg); }
+  .flip-face{
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .flip-front{ transform: rotateY(0deg); }
+  .flip-back{ transform: rotateY(180deg); }
+
+  .settings-title{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom: 4px;
+  }
+  .back-btn{
+    background: none; border: 1px solid var(--line);
+    color: var(--ink);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .settings-section{
+    background: var(--paper);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .settings-section h3{
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    margin: 0 0 10px;
+  }
+  .weekday-row{
+    display: grid;
+    grid-template-columns: 46px 1fr 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px dotted var(--line);
+    font-size: 13px;
+  }
+  .weekday-row:last-child{ border-bottom: none; }
+  .weekday-row label{ font-family:'Fraunces', serif; }
+  .weekday-row input[type=time]{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px;
+    width: 100%;
+  }
+  .weekday-row input[type=number]{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px;
+    width: 100%;
+    text-align: right;
+  }
+  .period-day-row{
+    display:flex; align-items:center; gap: 10px;
+  }
+  .period-day-row input[type=number]{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px;
+    width: 70px;
+    text-align: center;
+  }
+  .period-day-row .hint{ font-size: 12px; color: var(--ink-soft); flex:1; }
+  .color-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--line);
+  }
+  .color-row:last-child{ border-bottom:none; }
+  .color-row label{ font-family:'Fraunces', serif; font-size: 14px; }
+  .color-row input[type=color]{
+    width: 44px; height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px;
+    background: none;
+  }
+  .settings-reset{
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--line);
+    color: var(--ink-soft);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .swipe-hint{
+    text-align:center;
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
   h1{
     font-family:'Fraunces', serif;
     font-weight:600;
@@ -364,15 +497,25 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Tidsstempling</h1>
-  <p class="subhead">Ind, pause og ud — med afvigelse fra normal arbejdstid</p>
+  <div class="flip-scene">
+  <div class="flip-card" id="flipCard">
+  <div class="flip-face flip-front" id="frontFace">
+
+  <div class="app-header-row">
+    <div>
+      <h1>Tidsstempling</h1>
+      <p class="subhead">Ind, pause og ud — med afvigelse fra normal arbejdstid</p>
+    </div>
+    <button class="gear-btn" id="openSettingsBtn" aria-label="Indstillinger">⚙️</button>
+  </div>
+  <div class="swipe-hint">◂ swip for indstillinger</div>
 
   <div class="period-card">
     <div class="period-header">
       <button id="prevPeriod" aria-label="Forrige periode">‹</button>
       <div class="period-label">
         <div class="range" id="periodRange">…</div>
-        <div class="tag">lønperiode: d. 20. – d. 19. næste måned</div>
+        <div class="tag" id="periodTag">lønperiode: d. 20. – d. 19. næste måned</div>
       </div>
       <button id="nextPeriod" aria-label="Næste periode">›</button>
     </div>
@@ -445,7 +588,79 @@
   </div>
 
   <footer>Gemt automatisk på denne enhed</footer>
+
+  </div><!-- /flip-front -->
+
+  <div class="flip-face flip-back" id="backFace">
+    <div class="settings-title">
+      <button class="back-btn" id="closeSettingsBtn" aria-label="Tilbage">‹</button>
+      <h1 style="font-size:22px;">Indstillinger</h1>
+    </div>
+    <div class="swipe-hint">swip for tilbage ▸</div>
+
+    <div class="settings-section">
+      <h3>Normal arbejdstid</h3>
+      <div class="weekday-row">
+        <label>Man</label><input type="time" data-day="1" class="wd-start" step="60"><input type="time" data-day="1" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row">
+        <label>Tir</label><input type="time" data-day="2" class="wd-start" step="60"><input type="time" data-day="2" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row">
+        <label>Ons</label><input type="time" data-day="3" class="wd-start" step="60"><input type="time" data-day="3" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row">
+        <label>Tor</label><input type="time" data-day="4" class="wd-start" step="60"><input type="time" data-day="4" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row">
+        <label>Fre</label><input type="time" data-day="5" class="wd-start" step="60"><input type="time" data-day="5" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row">
+        <label>Lør</label><input type="time" data-day="6" class="wd-start" step="60"><input type="time" data-day="6" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row">
+        <label>Søn</label><input type="time" data-day="0" class="wd-start" step="60"><input type="time" data-day="0" class="wd-end" step="60">
+      </div>
+      <div class="weekday-row" style="border-top:1px solid var(--line); margin-top:4px; padding-top:8px;">
+        <label></label><span style="font-size:11px; color:var(--ink-soft);">start</span><span style="font-size:11px; color:var(--ink-soft);">gå hjem</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Lønperiode</h3>
+      <div class="period-day-row">
+        <input type="number" id="periodStartDayInput" min="1" max="28" value="20">
+        <span class="hint">Ny periode starter denne dag hver måned (perioden slutter dagen inden, næste måned)</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Farver</h3>
+      <div class="color-row">
+        <label>Baggrund (papir)</label>
+        <input type="color" id="colorPaper" value="#F6F1E6">
+      </div>
+      <div class="color-row">
+        <label>Mørk (kort/header)</label>
+        <input type="color" id="colorInk" value="#1F2A38">
+      </div>
+      <div class="color-row">
+        <label>Blå accent</label>
+        <input type="color" id="colorAccent" value="#2B4C7E">
+      </div>
+      <div class="color-row">
+        <label>Rav accent (pause)</label>
+        <input type="color" id="colorAmber" value="#B5722A">
+      </div>
+    </div>
+
+    <button class="settings-reset" id="resetSettingsBtn">Nulstil til standard</button>
+  </div><!-- /flip-back -->
+
+  </div><!-- /flip-card -->
+  </div><!-- /flip-scene -->
 </div>
+
 
 <script>
 (function(){
@@ -455,17 +670,89 @@
   const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
   const storageKey = dk => `stamps:${dk}`;
 
+  // ---------- Indstillinger ----------
+  const SETTINGS_KEY = 'stemplinger_settings';
+  const DEFAULT_SETTINGS = {
+    periodStartDay: 20,
+    weekdays: {
+      0: { start: '00:00', end: '00:00' },
+      1: { start: '06:55', end: '15:00' },
+      2: { start: '06:55', end: '15:00' },
+      3: { start: '06:55', end: '15:00' },
+      4: { start: '06:55', end: '15:00' },
+      5: { start: '06:55', end: '14:30' },
+      6: { start: '00:00', end: '00:00' }
+    },
+    colors: { paper: '#F6F1E6', ink: '#1F2A38', accent: '#2B4C7E', amber: '#B5722A' }
+  };
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if(!raw) return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      const parsed = JSON.parse(raw);
+      const mergedWeekdays = { ...DEFAULT_SETTINGS.weekdays, ...(parsed.weekdays || {}) };
+      // Migrate old {start,hours} shape (before end-time was added) to {start,end}
+      Object.keys(mergedWeekdays).forEach(k => {
+        const cfg = mergedWeekdays[k];
+        if(cfg && cfg.end === undefined && typeof cfg.hours === 'number'){
+          const [h,m] = cfg.start.split(':').map(Number);
+          let total = h*60 + m + Math.round(cfg.hours*60);
+          total = ((total % 1440) + 1440) % 1440;
+          mergedWeekdays[k] = { start: cfg.start, end: `${pad(Math.floor(total/60))}:${pad(total%60)}` };
+        }
+      });
+      // merge with defaults so missing keys (e.g. after an update) don't break
+      return {
+        periodStartDay: parsed.periodStartDay ?? DEFAULT_SETTINGS.periodStartDay,
+        weekdays: mergedWeekdays,
+        colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
+      };
+    }catch(e){
+      return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    }
+  }
+  let settings = loadSettings();
+  applyColors();
+  function saveSettings(){
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+  function timeDiffMinutes(start, end){
+    const [sh,sm] = start.split(':').map(Number);
+    const [eh,em] = end.split(':').map(Number);
+    let diff = (eh*60+em) - (sh*60+sm);
+    if(diff < 0) diff += 1440;
+    return diff;
+  }
+  function darkenHex(hex, amt){
+    const n = hex.replace('#','');
+    const r = Math.max(0, parseInt(n.substring(0,2),16) - amt);
+    const g = Math.max(0, parseInt(n.substring(2,4),16) - amt);
+    const b = Math.max(0, parseInt(n.substring(4,6),16) - amt);
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  }
+  function applyColors(){
+    const c = settings.colors;
+    const root = document.documentElement.style;
+    root.setProperty('--paper', c.paper);
+    root.setProperty('--paper-dark', darkenHex(c.paper, 20));
+    root.setProperty('--ink', c.ink);
+    root.setProperty('--accent', c.accent);
+    root.setProperty('--accent-dark', darkenHex(c.accent, 20));
+    root.setProperty('--amber', c.amber);
+    root.setProperty('--amber-dark', darkenHex(c.amber, 20));
+  }
+
   function normalMinutes(date){
-    const day = date.getDay();
-    if(day>=1 && day<=4) return 450; // mandag-torsdag: 7,5 timer
-    if(day===5) return 420; // fredag: 7 timer
-    return 0; // weekend
+    const cfg = settings.weekdays[date.getDay()];
+    if(!cfg) return 0;
+    return timeDiffMinutes(cfg.start, cfg.end);
   }
   function normalRangeLabel(date){
-    const day = date.getDay();
-    if(day>=1 && day<=4) return "Normal: 06:55–15:00 (7,5 t)";
-    if(day===5) return "Normal: 06:55–14:30 (7,0 t)";
-    return "Ingen normal arbejdstid (weekend)";
+    const cfg = settings.weekdays[date.getDay()];
+    const mins = cfg ? timeDiffMinutes(cfg.start, cfg.end) : 0;
+    if(!cfg || mins <= 0) return "Ingen normal arbejdstid";
+    const hoursLabel = (mins/60).toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
+    return `Normal: ${cfg.start}–${cfg.end} (${hoursLabel} t)`;
   }
   function fmtHM(totalMinutes, signed){
     const sign = totalMinutes < 0 ? -1 : 1;
@@ -522,17 +809,18 @@
 
   const MONTHS_SHORT = ["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"];
 
-  // Pay period: starts the 19th of a month, runs through the 18th of the next month.
+  // Pay period: starts on settings.periodStartDay each month, runs through the day before that, next month.
   function getPeriodBounds(offset){
+    const startDay = settings.periodStartDay;
     const now = new Date();
     let year = now.getFullYear();
     let month = now.getMonth();
-    if(now.getDate() < 20){ month -= 1; }
+    if(now.getDate() < startDay){ month -= 1; }
     month += offset;
     while(month < 0){ month += 12; year -= 1; }
     while(month > 11){ month -= 12; year += 1; }
-    const start = new Date(year, month, 20);
-    const end = new Date(year, month + 1, 19);
+    const start = new Date(year, month, startDay);
+    const end = new Date(year, month + 1, startDay - 1);
     return { start, end };
   }
   function inPeriod(date, bounds){
@@ -627,6 +915,9 @@
   async function renderPeriod(){
     const bounds = getPeriodBounds(periodOffset);
     document.getElementById('periodRange').textContent = periodLabel(bounds);
+    const sd = settings.periodStartDay;
+    const ed = sd - 1 < 1 ? 'sidste dag i' : `d. ${sd-1}. i`;
+    document.getElementById('periodTag').textContent = `lønperiode: d. ${sd}. – ${ed} næste måned`;
     const { workedMs, normalMs, diffMs } = await getPeriodData(bounds);
     document.getElementById('periodWorked').textContent = fmtHM(workedMs/60000, false);
     document.getElementById('periodNormal').textContent = fmtHM(normalMs/60000, false);
@@ -787,7 +1078,7 @@
     await saveDay(dk, events);
   }
 
-  document.getElementById('clockBtn').addEventListener('click', async () => {
+  async function doClockAction(){
     const events = await loadDay(todayKey);
     const status = lastStatus(events);
     if(status === 'out'){
@@ -803,10 +1094,11 @@
     }
     await render();
     await computeSaldo();
-        await renderPeriod();
-  });
+    await renderPeriod();
+  }
+  document.getElementById('clockBtn').addEventListener('click', doClockAction);
 
-  document.getElementById('pauseBtn').addEventListener('click', async () => {
+  async function doPauseAction(){
     const events = await loadDay(todayKey);
     const status = lastStatus(events);
     if(status === 'in'){
@@ -816,8 +1108,9 @@
     }
     await render();
     await computeSaldo();
-        await renderPeriod();
-  });
+    await renderPeriod();
+  }
+  document.getElementById('pauseBtn').addEventListener('click', doPauseAction);
 
   document.getElementById('prevDay').addEventListener('click', () => {
     const d = parseKey(selectedKey);
@@ -851,16 +1144,18 @@
   });
 
   function periodKeyForDate(date){
+    const startDay = settings.periodStartDay;
     let year = date.getFullYear();
     let month = date.getMonth();
-    if(date.getDate() < 20){ month -= 1; }
+    if(date.getDate() < startDay){ month -= 1; }
     while(month < 0){ month += 12; year -= 1; }
     return `${year}-${pad(month+1)}`;
   }
   function boundsFromPeriodKey(key){
+    const startDay = settings.periodStartDay;
     const [y, m] = key.split('-').map(Number);
-    const start = new Date(y, m-1, 20);
-    const end = new Date(y, m, 19);
+    const start = new Date(y, m-1, startDay);
+    const end = new Date(y, m, startDay - 1);
     return { start, end };
   }
 
@@ -910,7 +1205,7 @@
       alert('Der er ingen stemplinger i denne periode endnu.');
       return;
     }
-    downloadText(`stemplinger/tidsstempling_periode_${dateKey(bounds.start)}.txt`, text);
+    downloadText(`tidsstempling_periode_${dateKey(bounds.start)}.txt`, text);
   });
 
   function buildPrintRow(d){
@@ -1009,7 +1304,7 @@
       if(localStorage.getItem(AUTO_EXPORT_KEY) === prevKey) return;
       const text = await buildPeriodExportText(prevBounds);
       if(text){
-        downloadText(`stemplinger/tidsstempling_periode_${dateKey(prevBounds.start)}.txt`, text);
+        downloadText(`tidsstempling_periode_${dateKey(prevBounds.start)}.txt`, text);
         localStorage.setItem(AUTO_EXPORT_KEY, prevKey);
         alert(`Ny lønperiode startet. Tidsdokumentet for ${periodLabel(prevBounds)} er automatisk gemt i Downloads/stemplinger.`);
       }
@@ -1068,28 +1363,55 @@
 
     lines.push('='.repeat(44));
     lines.push(`Alt i alt: ${fmtHM(grandDiffMs/60000, true)}`);
-    downloadText(`stemplinger/tidsstempling_alt_${todayKey}.txt`, lines.join('\n'));
+    downloadText(`tidsstempling_alt_${todayKey}.txt`, lines.join('\n'));
   });
 
-  document.getElementById('backupBtn').addEventListener('click', () => {
+  function buildBackupPayload(){
     const keys = allStampKeys();
-    if(keys.length === 0){
-      alert('Der er ingen stemplinger at lave backup af endnu.');
-      return;
-    }
+    if(keys.length === 0) return null;
     const stamps = {};
     keys.forEach(k => { stamps[k] = JSON.parse(localStorage.getItem(k)); });
-    const payload = { exportedAt: new Date().toISOString(), stamps };
+    return { exportedAt: new Date().toISOString(), stamps };
+  }
+  function downloadBackupFile(payload){
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `stemplinger/tidsstempling_backup_${todayKey}.json`;
+    a.download = `tidsstempling_backup_${todayKey}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('backupBtn').addEventListener('click', () => {
+    const payload = buildBackupPayload();
+    if(!payload){
+      alert('Der er ingen stemplinger at lave backup af endnu.');
+      return;
+    }
+    downloadBackupFile(payload);
   });
+
+  // Auto-backup: every Sunday from kl. 19:00, the first time the app is
+  // opened after that point, save a fresh backup automatically.
+  const AUTO_BACKUP_KEY = 'lastAutoBackupDate';
+  function checkAutoBackup(){
+    try{
+      const now = new Date();
+      if(now.getDay() !== 0) return; // kun søndage
+      if(now.getHours() < 19) return; // først fra kl. 19:00
+      const todayStr = dateKey(now);
+      if(localStorage.getItem(AUTO_BACKUP_KEY) === todayStr) return; // allerede kørt i dag
+      const payload = buildBackupPayload();
+      if(!payload) return; // nothing to back up yet
+      downloadBackupFile(payload);
+      localStorage.setItem(AUTO_BACKUP_KEY, todayStr);
+    }catch(e){
+      console.error('Automatisk backup fejlede', e);
+    }
+  }
 
   document.getElementById('restoreBtn').addEventListener('click', () => {
     document.getElementById('restoreInput').click();
@@ -1121,10 +1443,145 @@
     e.target.value = '';
   });
 
+  // ---------- Indstillinger: formular ----------
+  function populateSettingsForm(){
+    for(let d = 0; d <= 6; d++){
+      const cfg = settings.weekdays[d];
+      const startInput = document.querySelector(`.wd-start[data-day="${d}"]`);
+      const endInput = document.querySelector(`.wd-end[data-day="${d}"]`);
+      if(startInput) startInput.value = cfg.start;
+      if(endInput) endInput.value = cfg.end;
+    }
+    document.getElementById('periodStartDayInput').value = settings.periodStartDay;
+    document.getElementById('colorPaper').value = settings.colors.paper;
+    document.getElementById('colorInk').value = settings.colors.ink;
+    document.getElementById('colorAccent').value = settings.colors.accent;
+    document.getElementById('colorAmber').value = settings.colors.amber;
+  }
+
+  async function refreshAll(){
+    await render();
+    await computeSaldo();
+    await renderPeriod();
+  }
+
+  document.querySelectorAll('.wd-start, .wd-end').forEach(input => {
+    input.addEventListener('change', async () => {
+      const day = input.getAttribute('data-day');
+      const startVal = document.querySelector(`.wd-start[data-day="${day}"]`).value || '00:00';
+      const endVal = document.querySelector(`.wd-end[data-day="${day}"]`).value || '00:00';
+      settings.weekdays[day] = { start: startVal, end: endVal };
+      saveSettings();
+      await refreshAll();
+    });
+  });
+
+  document.getElementById('periodStartDayInput').addEventListener('change', async (e) => {
+    let v = parseInt(e.target.value, 10);
+    if(!v || v < 1) v = 1;
+    if(v > 28) v = 28;
+    e.target.value = v;
+    settings.periodStartDay = v;
+    saveSettings();
+    periodOffset = 0;
+    await refreshAll();
+  });
+
+  ['colorPaper','colorInk','colorAccent','colorAmber'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      settings.colors.paper = document.getElementById('colorPaper').value;
+      settings.colors.ink = document.getElementById('colorInk').value;
+      settings.colors.accent = document.getElementById('colorAccent').value;
+      settings.colors.amber = document.getElementById('colorAmber').value;
+      applyColors();
+      saveSettings();
+    });
+  });
+
+  document.getElementById('resetSettingsBtn').addEventListener('click', async () => {
+    if(!confirm('Nulstil alle indstillinger (arbejdstider, lønperiode og farver) til standard?')) return;
+    settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    saveSettings();
+    applyColors();
+    populateSettingsForm();
+    periodOffset = 0;
+    await refreshAll();
+  });
+
+  // ---------- Flip-navigation til indstillinger ----------
+  const flipCard = document.getElementById('flipCard');
+  const frontFace = document.getElementById('frontFace');
+  const backFace = document.getElementById('backFace');
+  let isFlipped = false;
+
+  function syncFlipHeight(){
+    const target = isFlipped ? backFace : frontFace;
+    flipCard.style.height = target.scrollHeight + 'px';
+  }
+
+  function openSettings(){
+    if(isFlipped) return;
+    populateSettingsForm();
+    isFlipped = true;
+    syncFlipHeight();
+    flipCard.classList.add('flipped');
+  }
+  function closeSettings(){
+    if(!isFlipped) return;
+    isFlipped = false;
+    syncFlipHeight();
+    flipCard.classList.remove('flipped');
+  }
+
+  document.getElementById('openSettingsBtn').addEventListener('click', openSettings);
+  document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
+
+  // Re-measure height whenever the front face's own content changes size
+  if('ResizeObserver' in window){
+    const ro = new ResizeObserver(() => { if(!isFlipped) syncFlipHeight(); });
+    ro.observe(frontFace);
+    const roBack = new ResizeObserver(() => { if(isFlipped) syncFlipHeight(); });
+    roBack.observe(backFace);
+  }
+
+  // Swipe gesture: swipe left on front face opens settings, swipe right on back closes it
+  let touchStartX = null, touchStartY = null;
+  document.getElementById('flipCard').addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.getElementById('flipCard').addEventListener('touchend', (e) => {
+    if(touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      if(dx < 0 && !isFlipped) openSettings();
+      else if(dx > 0 && isFlipped) closeSettings();
+    }
+    touchStartX = null; touchStartY = null;
+  }, { passive: true });
+
   render();
   computeSaldo();
   renderPeriod();
   checkAutoExport();
+  checkAutoBackup();
+  syncFlipHeight();
+
+  // Handle app-shortcut quick actions (long-press home screen icon)
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    if(action === 'clock'){
+      await doClockAction();
+    } else if(action === 'pause'){
+      await doPauseAction();
+    }
+    if(action){
+      // clean the address bar so a later reload doesn't repeat the action
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  })();
 
   if('serviceWorker' in navigator){
     window.addEventListener('load', () => {
