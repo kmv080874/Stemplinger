@@ -389,6 +389,48 @@
   .stamp-icon-btn.save{ color: var(--green); opacity:0.85; font-size:16px; }
   .stamp-icon-btn.cancel{ color: var(--red); opacity:0.85; }
 
+  /* Liste-visning: fladt, mindre dekoreret */
+  .stamps.layout-list li{ padding: 5px 2px; gap: 8px; }
+  .stamps.layout-list .stamp-dot{ display:none; }
+  .stamps.layout-list .stamp-time{ font-family:'JetBrains Mono', monospace; font-size:13px; }
+  .stamps.layout-list .stamp-label{ font-family:'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+
+  /* Kompakt-visning: alle stemplinger som små chips på række */
+  .stamps.layout-compact{ display:flex; flex-wrap:wrap; gap: 6px; padding: 4px 0; }
+  .stamps.layout-compact li{
+    display:inline-flex; align-items:center; gap:4px;
+    border: 1px solid var(--line); border-radius: 14px;
+    padding: 4px 6px 4px 9px;
+    border-bottom: none;
+    font-size: 12px;
+  }
+  .stamps.layout-compact .stamp-dot{ width:6px; height:6px; }
+  .stamps.layout-compact .stamp-label{ display:none; }
+  .stamps.layout-compact .stamp-time{ font-family:'JetBrains Mono', monospace; font-size:12px; }
+  .stamps.layout-compact .stamp-icon-btn{ font-size:10px; padding:0 2px; }
+  .stamps.layout-compact .stamp-time-input{ width:66px; font-size:11px; padding:1px 3px; }
+
+  .layout-picker{
+    display:flex; gap: 6px;
+  }
+  .layout-opt{
+    flex:1;
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    border-radius: 8px;
+    padding: 9px 4px;
+    font-family: 'Fraunces', serif;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .layout-opt.active{
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+    font-weight: 600;
+  }
+
   .stamp-time-input{
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
@@ -635,6 +677,15 @@
     </div>
 
     <div class="settings-section">
+      <h3>Visning af dagens stemplinger</h3>
+      <div class="layout-picker">
+        <button type="button" class="layout-opt" data-layout="card">Kort</button>
+        <button type="button" class="layout-opt" data-layout="list">Liste</button>
+        <button type="button" class="layout-opt" data-layout="compact">Kompakt</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
       <h3>Farver</h3>
       <div class="color-row">
         <label>Baggrund (papir)</label>
@@ -674,6 +725,7 @@
   const SETTINGS_KEY = 'stemplinger_settings';
   const DEFAULT_SETTINGS = {
     periodStartDay: 20,
+    dayLayout: 'card',
     weekdays: {
       0: { start: '00:00', end: '00:00' },
       1: { start: '06:55', end: '15:00' },
@@ -704,6 +756,7 @@
       // merge with defaults so missing keys (e.g. after an update) don't break
       return {
         periodStartDay: parsed.periodStartDay ?? DEFAULT_SETTINGS.periodStartDay,
+        dayLayout: parsed.dayLayout ?? DEFAULT_SETTINGS.dayLayout,
         weekdays: mergedWeekdays,
         colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
       };
@@ -941,6 +994,7 @@
     const listEl = document.getElementById('stampsList');
     const emptyEl = document.getElementById('emptyNote');
     listEl.innerHTML = '';
+    listEl.className = 'stamps layout-' + (settings.dayLayout || 'card');
     const sorted = [...events].sort((a,b)=>a.ts-b.ts);
     if(sorted.length === 0){
       emptyEl.style.display = 'block';
@@ -1453,6 +1507,9 @@
       if(endInput) endInput.value = cfg.end;
     }
     document.getElementById('periodStartDayInput').value = settings.periodStartDay;
+    document.querySelectorAll('.layout-opt').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-layout') === (settings.dayLayout || 'card'));
+    });
     document.getElementById('colorPaper').value = settings.colors.paper;
     document.getElementById('colorInk').value = settings.colors.ink;
     document.getElementById('colorAccent').value = settings.colors.accent;
@@ -1485,6 +1542,16 @@
     saveSettings();
     periodOffset = 0;
     await refreshAll();
+  });
+
+  document.querySelectorAll('.layout-opt').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      settings.dayLayout = btn.getAttribute('data-layout');
+      saveSettings();
+      document.querySelectorAll('.layout-opt').forEach(b => b.classList.toggle('active', b === btn));
+      await render();
+      if(isFlipped) syncFlipHeight();
+    });
   });
 
   ['colorPaper','colorInk','colorAccent','colorAmber'].forEach(id => {
