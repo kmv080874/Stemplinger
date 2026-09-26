@@ -33,5 +33,28 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Stempl ind / ud",
+      "short_name": "Stempl",
+      "description": "Registrer indstempling eller udstempling med det samme",
+      "url": "./index.html?action=clock",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Pause",
+      "short_name": "Pause",
+      "description": "Start eller afslut pause med det samme",
+      "url": "./index.html?action=pause",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Se lønperiode",
+      "short_name": "Periode",
+      "description": "Åbn appen og se status for den aktuelle lønperiode",
+      "url": "./index.html?action=period",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
