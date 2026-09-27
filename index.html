@@ -413,7 +413,7 @@
   .layout-picker{
     display:flex; gap: 6px;
   }
-  .layout-opt{
+  .layout-opt, .appearance-opt{
     flex:1;
     background: var(--paper-dark);
     border: 1px solid var(--line);
@@ -424,7 +424,7 @@
     font-size: 12.5px;
     cursor: pointer;
   }
-  .layout-opt.active{
+  .layout-opt.active, .appearance-opt.active{
     background: var(--ink);
     color: var(--paper);
     border-color: var(--ink);
@@ -535,6 +535,105 @@
     color: var(--ink-soft);
     margin-top: 20px;
   }
+
+  /* ============ Udseende: Dashboard ============ */
+  body.theme-dashboard{ font-family: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif; }
+  body.theme-dashboard h1,
+  body.theme-dashboard .subhead,
+  body.theme-dashboard .settings-title h1,
+  body.theme-dashboard .settings-section h3,
+  body.theme-dashboard .date-main .day,
+  body.theme-dashboard .stamp-label,
+  body.theme-dashboard .layout-opt,
+  body.theme-dashboard .appearance-opt,
+  body.theme-dashboard .btn,
+  body.theme-dashboard .weekday-row label,
+  body.theme-dashboard .color-row label,
+  body.theme-dashboard .empty-note{
+    font-family: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif !important;
+  }
+  body.theme-dashboard h1{ font-weight: 800; letter-spacing: -0.02em; }
+  body.theme-dashboard .period-card{ border-radius: 18px; box-shadow: 0 10px 24px -14px rgba(31,42,56,0.4); }
+  body.theme-dashboard .ticket{ border-radius: 18px; background: #fff; box-shadow: 0 8px 20px -12px rgba(31,42,56,0.25); border: 1px solid var(--line); }
+  body.theme-dashboard .ticket::before,
+  body.theme-dashboard .ticket::after{ display:none; }
+  body.theme-dashboard .normal-line{ border-bottom: 1px solid var(--line); }
+  body.theme-dashboard .stamps li{ border-bottom: 1px solid var(--line); }
+  body.theme-dashboard .summary,
+  body.theme-dashboard .period-summary{ border-top: 1px solid var(--line); }
+  body.theme-dashboard .btn.export,
+  body.theme-dashboard .btn.clock,
+  body.theme-dashboard .btn.pause,
+  body.theme-dashboard .layout-opt,
+  body.theme-dashboard .appearance-opt,
+  body.theme-dashboard .settings-section{ border-radius: 14px; }
+  body.theme-dashboard .settings-section{ box-shadow: 0 4px 14px -10px rgba(31,42,56,0.3); }
+  body.theme-dashboard .gear-btn{ border-radius: 12px; }
+  body.theme-dashboard .datebar button,
+  body.theme-dashboard .period-header button,
+  body.theme-dashboard .back-btn{ border-radius: 10px; }
+
+  /* ============ Udseende: Minimal ============ */
+  body.theme-minimal{ font-family: 'JetBrains Mono', monospace; }
+  body.theme-minimal h1,
+  body.theme-minimal .subhead,
+  body.theme-minimal .settings-title h1,
+  body.theme-minimal .settings-section h3,
+  body.theme-minimal .date-main .day,
+  body.theme-minimal .stamp-label,
+  body.theme-minimal .layout-opt,
+  body.theme-minimal .btn,
+  body.theme-minimal .weekday-row label,
+  body.theme-minimal .color-row label,
+  body.theme-minimal .empty-note,
+  body.theme-minimal .range{
+    font-family: 'JetBrains Mono', monospace !important;
+    font-weight: 600;
+  }
+  body.theme-minimal h1{ font-size: 22px; letter-spacing: -0.01em; }
+  body.theme-minimal .period-card{
+    background: none; color: var(--ink);
+    border: none; border-bottom: 1px solid var(--ink);
+    border-radius: 0; padding: 10px 2px 14px;
+  }
+  body.theme-minimal .saldo-label,
+  body.theme-minimal .period-label .tag{ color: var(--ink-soft); }
+  body.theme-minimal .period-summary .k{ color: var(--ink-soft); }
+  body.theme-minimal .period-summary{ border-top: 1px solid var(--line); }
+  body.theme-minimal .period-summary .v.red{ color: var(--red); }
+  body.theme-minimal .period-summary .v.green{ color: var(--green); }
+  body.theme-minimal .period-header button{
+    background: none; border: 1px solid var(--line); color: var(--ink);
+  }
+  body.theme-minimal .ticket{
+    background: none; box-shadow: none; border-radius: 0;
+    border-top: 1px solid var(--line); padding: 16px 2px 4px;
+  }
+  body.theme-minimal .ticket::before,
+  body.theme-minimal .ticket::after{ display:none; }
+  body.theme-minimal .normal-line{ border-bottom: 1px solid var(--line); }
+  body.theme-minimal .stamp-dot{ display:none; }
+  body.theme-minimal .stamps li{ border-bottom: 1px solid var(--line); padding: 7px 0; }
+  body.theme-minimal .summary{ border-top: 1px solid var(--ink); }
+  body.theme-minimal .datebar button{ background:none; border:1px solid var(--line); border-radius: 4px; }
+  body.theme-minimal .btn.clock,
+  body.theme-minimal .btn.pause{
+    background: none; border: 1px solid var(--ink); color: var(--ink);
+    border-radius: 4px;
+  }
+  body.theme-minimal .btn.clock.active-out{ border-color: var(--red); color: var(--red); }
+  body.theme-minimal .btn.pause.active{ border-color: var(--amber); color: var(--amber); }
+  body.theme-minimal .btn.export{
+    background: none; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 4px;
+  }
+  body.theme-minimal .btn.backup{ border-radius: 4px; }
+  body.theme-minimal .settings-section{
+    background: none; border: 1px solid var(--line); border-radius: 4px;
+  }
+  body.theme-minimal .layout-opt, body.theme-minimal .appearance-opt{ border-radius: 4px; }
+  body.theme-minimal .gear-btn{ background: none; border: 1px solid var(--ink); color: var(--ink); border-radius: 4px; }
+  body.theme-minimal .backup-row .btn{ border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -686,6 +785,15 @@
     </div>
 
     <div class="settings-section">
+      <h3>Udseende</h3>
+      <div class="layout-picker">
+        <button type="button" class="appearance-opt" data-appearance="ticket">Billet</button>
+        <button type="button" class="appearance-opt" data-appearance="dashboard">Dashboard</button>
+        <button type="button" class="appearance-opt" data-appearance="minimal">Minimal</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
       <h3>Farver</h3>
       <div class="color-row">
         <label>Baggrund (papir)</label>
@@ -726,6 +834,7 @@
   const DEFAULT_SETTINGS = {
     periodStartDay: 20,
     dayLayout: 'card',
+    appearance: 'ticket',
     weekdays: {
       0: { start: '00:00', end: '00:00' },
       1: { start: '06:55', end: '15:00' },
@@ -757,6 +866,7 @@
       return {
         periodStartDay: parsed.periodStartDay ?? DEFAULT_SETTINGS.periodStartDay,
         dayLayout: parsed.dayLayout ?? DEFAULT_SETTINGS.dayLayout,
+        appearance: parsed.appearance ?? DEFAULT_SETTINGS.appearance,
         weekdays: mergedWeekdays,
         colors: { ...DEFAULT_SETTINGS.colors, ...(parsed.colors || {}) }
       };
@@ -766,6 +876,11 @@
   }
   let settings = loadSettings();
   applyColors();
+  function applyAppearance(){
+    document.body.classList.remove('theme-ticket', 'theme-dashboard', 'theme-minimal');
+    document.body.classList.add('theme-' + (settings.appearance || 'ticket'));
+  }
+  applyAppearance();
   function saveSettings(){
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
@@ -1510,6 +1625,9 @@
     document.querySelectorAll('.layout-opt').forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-layout') === (settings.dayLayout || 'card'));
     });
+    document.querySelectorAll('.appearance-opt').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-appearance') === (settings.appearance || 'ticket'));
+    });
     document.getElementById('colorPaper').value = settings.colors.paper;
     document.getElementById('colorInk').value = settings.colors.ink;
     document.getElementById('colorAccent').value = settings.colors.accent;
@@ -1554,6 +1672,16 @@
     });
   });
 
+  document.querySelectorAll('.appearance-opt').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      settings.appearance = btn.getAttribute('data-appearance');
+      saveSettings();
+      document.querySelectorAll('.appearance-opt').forEach(b => b.classList.toggle('active', b === btn));
+      applyAppearance();
+      if(isFlipped) syncFlipHeight();
+    });
+  });
+
   ['colorPaper','colorInk','colorAccent','colorAmber'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => {
       settings.colors.paper = document.getElementById('colorPaper').value;
@@ -1566,10 +1694,11 @@
   });
 
   document.getElementById('resetSettingsBtn').addEventListener('click', async () => {
-    if(!confirm('Nulstil alle indstillinger (arbejdstider, lønperiode og farver) til standard?')) return;
+    if(!confirm('Nulstil alle indstillinger (arbejdstider, lønperiode, udseende og farver) til standard?')) return;
     settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
     saveSettings();
     applyColors();
+    applyAppearance();
     populateSettingsForm();
     periodOffset = 0;
     await refreshAll();
