@@ -358,6 +358,42 @@
     margin-bottom: 14px;
   }
 
+  .absence-picker{
+    display:flex; gap: 6px;
+    margin: -6px 0 14px;
+  }
+  .absence-opt{
+    flex:1;
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    border-radius: 8px;
+    padding: 7px 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .absence-opt.active.sick{ background: var(--red); border-color: var(--red); color: #fff; }
+  .absence-opt.active.comp{ background: var(--accent); border-color: var(--accent); color: #fff; }
+  .absence-opt.active.free{ background: var(--ink-soft); border-color: var(--ink-soft); color: #fff; }
+  .absence-opt.active.vacation{ background: var(--green); border-color: var(--green); color: #fff; }
+
+  .absence-badge{
+    display: none;
+    text-align:center;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 10px 0;
+    margin-bottom: 6px;
+    border-radius: 8px;
+  }
+  .absence-badge.show{ display:block; }
+  .absence-badge.sick{ background: rgba(179,57,44,0.12); color: var(--red); }
+  .absence-badge.comp{ background: rgba(43,76,126,0.12); color: var(--accent); }
+  .absence-badge.free{ background: rgba(91,107,128,0.12); color: var(--ink-soft); }
+  .absence-badge.vacation{ background: rgba(47,107,79,0.12); color: var(--green); }
+
   .stamps{
     list-style:none; margin:0; padding:0;
     min-height: 36px;
@@ -701,6 +737,14 @@
     </div>
     <div class="normal-line" id="normalLine"></div>
 
+    <div class="absence-picker">
+      <button type="button" class="absence-opt" data-absence="sick">Syg</button>
+      <button type="button" class="absence-opt" data-absence="comp">Afsp.</button>
+      <button type="button" class="absence-opt" data-absence="free">Fri</button>
+      <button type="button" class="absence-opt" data-absence="vacation">Ferie</button>
+    </div>
+    <div class="absence-badge" id="absenceBadge"></div>
+
     <ul class="stamps" id="stampsList"></ul>
     <div class="empty-note" id="emptyNote" style="display:none;">Ingen stemplinger denne dag</div>
 
@@ -884,6 +928,24 @@
   function saveSettings(){
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
+
+  // ---------- Fravær: syg / afspadsering / fri / ferie ----------
+  const ABSENCES_KEY = 'stemplinger_absences';
+  const ABSENCE_LABELS = { sick: 'Syg', comp: 'Afspadsering', free: 'Fri', vacation: 'Ferie' };
+  function loadAbsences(){
+    try{
+      const raw = localStorage.getItem(ABSENCES_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  let absences = loadAbsences();
+  function saveAbsences(){ localStorage.setItem(ABSENCES_KEY, JSON.stringify(absences)); }
+  function getAbsence(dk){ return absences[dk] || null; }
+  function setAbsence(dk, type){
+    if(type){ absences[dk] = type; } else { delete absences[dk]; }
+    saveAbsences();
+  }
+
   function timeDiffMinutes(start, end){
     const [sh,sm] = start.split(':').map(Number);
     const [eh,em] = end.split(':').map(Number);
@@ -911,11 +973,13 @@
   }
 
   function normalMinutes(date){
+    if(getAbsence(dateKey(date))) return 0;
     const cfg = settings.weekdays[date.getDay()];
     if(!cfg) return 0;
     return timeDiffMinutes(cfg.start, cfg.end);
   }
   function normalRangeLabel(date){
+    if(getAbsence(dateKey(date))) return "Ingen normal arbejdstid registreret (fravær)";
     const cfg = settings.weekdays[date.getDay()];
     const mins = cfg ? timeDiffMinutes(cfg.start, cfg.end) : 0;
     if(!cfg || mins <= 0) return "Ingen normal arbejdstid";
@@ -1062,20 +1126,23 @@
 
   // Gathers every stored day that falls inside a pay period, with computed totals.
   async function getPeriodData(bounds){
-    const keys = allStampKeys().map(k => k.slice('stamps:'.length)).sort();
+    const stampKeys = allStampKeys().map(k => k.slice('stamps:'.length));
+    const absenceKeys = Object.keys(absences);
+    const keys = Array.from(new Set([...stampKeys, ...absenceKeys])).sort();
     const days = [];
     let workedMs = 0, normalMs = 0;
     for(const dk of keys){
       const date = parseKey(dk);
       if(!inPeriod(date, bounds)) continue;
       const events = cache[dk] || await loadDay(dk);
-      if(!events.length) continue;
+      const absence = getAbsence(dk);
+      if(!events.length && !absence) continue;
       const isToday = dk === todayKey;
       const w = computeWorked(events, isToday ? Date.now() : null);
       const n = normalMinutes(date) * 60000;
       workedMs += w.workedMs;
       normalMs += n;
-      days.push({ dk, date, events, workedMs: w.workedMs, normalMs: n });
+      days.push({ dk, date, events, workedMs: w.workedMs, normalMs: n, absence });
     }
     return { days, workedMs, normalMs, diffMs: workedMs - normalMs };
   }
@@ -1104,6 +1171,21 @@
     dayLabelEl.textContent = `${WEEKDAYS[date.getDay()]} ${date.getDate()}. ${date.toLocaleDateString('da-DK',{month:'long'})}`;
     dayLabelEl.className = 'day' + (isToday ? ' today-tag' : '');
     document.getElementById('normalLine').textContent = normalRangeLabel(date);
+
+    const currentAbsence = getAbsence(selectedKey);
+    document.querySelectorAll('.absence-opt').forEach(btn => {
+      const isActive = btn.getAttribute('data-absence') === currentAbsence;
+      btn.classList.toggle('active', isActive);
+      btn.classList.toggle(btn.getAttribute('data-absence'), isActive);
+    });
+    const badgeEl = document.getElementById('absenceBadge');
+    if(currentAbsence){
+      badgeEl.textContent = ABSENCE_LABELS[currentAbsence];
+      badgeEl.className = 'absence-badge show ' + currentAbsence;
+    } else {
+      badgeEl.className = 'absence-badge';
+      badgeEl.textContent = '';
+    }
 
     const events = await loadDay(selectedKey);
     const listEl = document.getElementById('stampsList');
@@ -1267,6 +1349,19 @@
   }
   document.getElementById('clockBtn').addEventListener('click', doClockAction);
 
+  document.querySelectorAll('.absence-opt').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const type = btn.getAttribute('data-absence');
+      const current = getAbsence(selectedKey);
+      setAbsence(selectedKey, current === type ? null : type);
+      await render();
+      await computeSaldo();
+      await renderPeriod();
+      if(isFlipped) syncFlipHeight();
+    });
+  });
+
+
   async function doPauseAction(){
     const events = await loadDay(todayKey);
     const status = lastStatus(events);
@@ -1328,13 +1423,18 @@
     return { start, end };
   }
 
-  function buildDayLines(dk, date, events, workedMs, normalMs){
+  function buildDayLines(dk, date, events, workedMs, normalMs, absence){
     const lines = [];
     const sorted = [...events].sort((a,b)=>a.ts-b.ts);
     const diffMs = workedMs - normalMs;
     const dayName = WEEKDAYS[date.getDay()];
-    lines.push(`${dayName.charAt(0).toUpperCase()+dayName.slice(1)} ${pad(date.getDate())}-${pad(date.getMonth()+1)}-${date.getFullYear()}`);
-    sorted.forEach(e => lines.push(`   ${fmtClock(e.ts)}   ${LABELS[e.type]}`));
+    const absenceTag = absence ? `  — ${ABSENCE_LABELS[absence]}` : '';
+    lines.push(`${dayName.charAt(0).toUpperCase()+dayName.slice(1)} ${pad(date.getDate())}-${pad(date.getMonth()+1)}-${date.getFullYear()}${absenceTag}`);
+    if(sorted.length){
+      sorted.forEach(e => lines.push(`   ${fmtClock(e.ts)}   ${LABELS[e.type]}`));
+    } else if(absence){
+      lines.push(`   (ingen stempling)`);
+    }
     lines.push(`   Arbejdet: ${fmtHM(workedMs/60000,false).padEnd(6)}  Normal: ${(normalMs>0?fmtHM(normalMs/60000,false):'–').padEnd(6)}  Afvigelse: ${fmtHM(diffMs/60000,true)}`);
     lines.push('');
     return lines;
@@ -1361,7 +1461,7 @@
     lines.push('Eksporteret: ' + new Date().toLocaleString('da-DK'));
     lines.push('='.repeat(44));
     lines.push('');
-    days.forEach(d => lines.push(...buildDayLines(d.dk, d.date, d.events, d.workedMs, d.normalMs)));
+    days.forEach(d => lines.push(...buildDayLines(d.dk, d.date, d.events, d.workedMs, d.normalMs, d.absence)));
     lines.push('='.repeat(44));
     lines.push(`Periodesaldo: ${fmtHM(diffMs/60000, true)}  (arbejdet ${fmtHM(workedMs/60000,false)} / normal ${fmtHM(normalMs/60000,false)})`);
     return lines.join('\n');
@@ -1379,7 +1479,8 @@
 
   function buildPrintRow(d){
     const sorted = [...d.events].sort((a,b)=>a.ts-b.ts);
-    const stampsStr = sorted.map(e => `${fmtClock(e.ts)} ${LABELS[e.type]}`).join(' · ');
+    let stampsStr = sorted.map(e => `${fmtClock(e.ts)} ${LABELS[e.type]}`).join(' · ');
+    if(d.absence){ stampsStr = stampsStr ? `${stampsStr} · ${ABSENCE_LABELS[d.absence]}` : ABSENCE_LABELS[d.absence]; }
     const diffMs = d.workedMs - d.normalMs;
     const cls = diffMs < -30000 ? 'neg' : diffMs > 30000 ? 'pos' : '';
     const dayName = WEEKDAYS[d.date.getDay()];
@@ -1483,7 +1584,9 @@
   }
 
   document.getElementById('exportAllBtn').addEventListener('click', async () => {
-    const keys = allStampKeys().map(k => k.slice('stamps:'.length)).sort();
+    const stampKeys = allStampKeys().map(k => k.slice('stamps:'.length));
+    const absenceKeys = Object.keys(absences);
+    const keys = Array.from(new Set([...stampKeys, ...absenceKeys])).sort();
     if(keys.length === 0){
       alert('Der er endnu ingen stemplinger at eksportere.');
       return;
@@ -1511,7 +1614,8 @@
 
     for(const dk of keys){
       const events = await loadDay(dk);
-      if(!events.length) continue;
+      const absence = getAbsence(dk);
+      if(!events.length && !absence) continue;
       const date = parseKey(dk);
       const pk = periodKeyForDate(date);
       if(pk !== currentPeriodKey){
@@ -1526,7 +1630,7 @@
       const normalMs = normalMinutes(date) * 60000;
       periodWorked += workedMs;
       periodNormal += normalMs;
-      lines.push(...buildDayLines(dk, date, events, workedMs, normalMs));
+      lines.push(...buildDayLines(dk, date, events, workedMs, normalMs, absence));
     }
     flushPeriod();
 
@@ -1537,10 +1641,10 @@
 
   function buildBackupPayload(){
     const keys = allStampKeys();
-    if(keys.length === 0) return null;
+    if(keys.length === 0 && Object.keys(absences).length === 0) return null;
     const stamps = {};
     keys.forEach(k => { stamps[k] = JSON.parse(localStorage.getItem(k)); });
-    return { exportedAt: new Date().toISOString(), stamps };
+    return { exportedAt: new Date().toISOString(), stamps, absences };
   }
   function downloadBackupFile(payload){
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -1600,6 +1704,10 @@
           count++;
         }
       });
+      if(payload.absences && typeof payload.absences === 'object'){
+        absences = { ...absences, ...payload.absences };
+        saveAbsences();
+      }
       cache = {};
       editingIdx = null;
       await render();
