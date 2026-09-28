@@ -100,9 +100,9 @@
   }
   .weekday-row{
     display: grid;
-    grid-template-columns: 46px 1fr 1fr;
+    grid-template-columns: 40px 1fr 1fr 52px;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 6px 0;
     border-bottom: 1px dotted var(--line);
     font-size: 13px;
@@ -786,29 +786,30 @@
     <div class="settings-section">
       <h3>Normal arbejdstid</h3>
       <div class="weekday-row">
-        <label>Man</label><input type="time" data-day="1" class="wd-start" step="60"><input type="time" data-day="1" class="wd-end" step="60">
+        <label>Man</label><input type="time" data-day="1" class="wd-start" step="60"><input type="time" data-day="1" class="wd-end" step="60"><input type="number" data-day="1" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row">
-        <label>Tir</label><input type="time" data-day="2" class="wd-start" step="60"><input type="time" data-day="2" class="wd-end" step="60">
+        <label>Tir</label><input type="time" data-day="2" class="wd-start" step="60"><input type="time" data-day="2" class="wd-end" step="60"><input type="number" data-day="2" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row">
-        <label>Ons</label><input type="time" data-day="3" class="wd-start" step="60"><input type="time" data-day="3" class="wd-end" step="60">
+        <label>Ons</label><input type="time" data-day="3" class="wd-start" step="60"><input type="time" data-day="3" class="wd-end" step="60"><input type="number" data-day="3" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row">
-        <label>Tor</label><input type="time" data-day="4" class="wd-start" step="60"><input type="time" data-day="4" class="wd-end" step="60">
+        <label>Tor</label><input type="time" data-day="4" class="wd-start" step="60"><input type="time" data-day="4" class="wd-end" step="60"><input type="number" data-day="4" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row">
-        <label>Fre</label><input type="time" data-day="5" class="wd-start" step="60"><input type="time" data-day="5" class="wd-end" step="60">
+        <label>Fre</label><input type="time" data-day="5" class="wd-start" step="60"><input type="time" data-day="5" class="wd-end" step="60"><input type="number" data-day="5" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row">
-        <label>Lør</label><input type="time" data-day="6" class="wd-start" step="60"><input type="time" data-day="6" class="wd-end" step="60">
+        <label>Lør</label><input type="time" data-day="6" class="wd-start" step="60"><input type="time" data-day="6" class="wd-end" step="60"><input type="number" data-day="6" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row">
-        <label>Søn</label><input type="time" data-day="0" class="wd-start" step="60"><input type="time" data-day="0" class="wd-end" step="60">
+        <label>Søn</label><input type="time" data-day="0" class="wd-start" step="60"><input type="time" data-day="0" class="wd-end" step="60"><input type="number" data-day="0" class="wd-break" min="0" max="240" step="5">
       </div>
       <div class="weekday-row" style="border-top:1px solid var(--line); margin-top:4px; padding-top:8px;">
-        <label></label><span style="font-size:11px; color:var(--ink-soft);">start</span><span style="font-size:11px; color:var(--ink-soft);">gå hjem</span>
+        <label></label><span style="font-size:11px; color:var(--ink-soft);">start</span><span style="font-size:11px; color:var(--ink-soft);">gå hjem</span><span style="font-size:10px; color:var(--ink-soft); text-align:right;">pause¹</span>
       </div>
+      <div style="font-size:10px; color:var(--ink-soft); margin-top:6px;">¹ Ubetalt pause i minutter, trækkes fra normal-tiden (fx frokost)</div>
     </div>
 
     <div class="settings-section">
@@ -880,13 +881,13 @@
     dayLayout: 'card',
     appearance: 'ticket',
     weekdays: {
-      0: { start: '00:00', end: '00:00' },
-      1: { start: '06:55', end: '15:00' },
-      2: { start: '06:55', end: '15:00' },
-      3: { start: '06:55', end: '15:00' },
-      4: { start: '06:55', end: '15:00' },
-      5: { start: '06:55', end: '14:30' },
-      6: { start: '00:00', end: '00:00' }
+      0: { start: '00:00', end: '00:00', breakMinutes: 0 },
+      1: { start: '06:55', end: '15:00', breakMinutes: 35 },
+      2: { start: '06:55', end: '15:00', breakMinutes: 35 },
+      3: { start: '06:55', end: '15:00', breakMinutes: 35 },
+      4: { start: '06:55', end: '15:00', breakMinutes: 35 },
+      5: { start: '06:55', end: '14:30', breakMinutes: 35 },
+      6: { start: '00:00', end: '00:00', breakMinutes: 0 }
     },
     colors: { paper: '#F6F1E6', ink: '#1F2A38', accent: '#2B4C7E', amber: '#B5722A' }
   };
@@ -895,15 +896,19 @@
       const raw = localStorage.getItem(SETTINGS_KEY);
       if(!raw) return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
       const parsed = JSON.parse(raw);
-      const mergedWeekdays = { ...DEFAULT_SETTINGS.weekdays, ...(parsed.weekdays || {}) };
+      const parsedWeekdays = parsed.weekdays || {};
+      const mergedWeekdays = {};
+      for(let d = 0; d <= 6; d++){
+        mergedWeekdays[d] = { ...DEFAULT_SETTINGS.weekdays[d], ...(parsedWeekdays[d] || {}) };
+      }
       // Migrate old {start,hours} shape (before end-time was added) to {start,end}
       Object.keys(mergedWeekdays).forEach(k => {
         const cfg = mergedWeekdays[k];
-        if(cfg && cfg.end === undefined && typeof cfg.hours === 'number'){
+        if(cfg && parsedWeekdays[k] && parsedWeekdays[k].end === undefined && typeof parsedWeekdays[k].hours === 'number'){
           const [h,m] = cfg.start.split(':').map(Number);
-          let total = h*60 + m + Math.round(cfg.hours*60);
+          let total = h*60 + m + Math.round(parsedWeekdays[k].hours*60);
           total = ((total % 1440) + 1440) % 1440;
-          mergedWeekdays[k] = { start: cfg.start, end: `${pad(Math.floor(total/60))}:${pad(total%60)}` };
+          mergedWeekdays[k] = { start: cfg.start, end: `${pad(Math.floor(total/60))}:${pad(total%60)}`, breakMinutes: 0 };
         }
       });
       // merge with defaults so missing keys (e.g. after an update) don't break
@@ -976,15 +981,20 @@
     if(getAbsence(dateKey(date))) return 0;
     const cfg = settings.weekdays[date.getDay()];
     if(!cfg) return 0;
-    return timeDiffMinutes(cfg.start, cfg.end);
+    const span = timeDiffMinutes(cfg.start, cfg.end);
+    const brk = cfg.breakMinutes || 0;
+    return Math.max(0, span - brk);
   }
   function normalRangeLabel(date){
     if(getAbsence(dateKey(date))) return "Ingen normal arbejdstid registreret (fravær)";
     const cfg = settings.weekdays[date.getDay()];
-    const mins = cfg ? timeDiffMinutes(cfg.start, cfg.end) : 0;
+    const span = cfg ? timeDiffMinutes(cfg.start, cfg.end) : 0;
+    const brk = cfg ? (cfg.breakMinutes || 0) : 0;
+    const mins = Math.max(0, span - brk);
     if(!cfg || mins <= 0) return "Ingen normal arbejdstid";
     const hoursLabel = (mins/60).toFixed(2).replace(/\.?0+$/, '').replace('.', ',');
-    return `Normal: ${cfg.start}–${cfg.end} (${hoursLabel} t)`;
+    const breakNote = brk > 0 ? `, ÷${brk} min pause` : '';
+    return `Normal: ${cfg.start}–${cfg.end}${breakNote} (${hoursLabel} t)`;
   }
   function fmtHM(totalMinutes, signed){
     const sign = totalMinutes < 0 ? -1 : 1;
@@ -1726,8 +1736,10 @@
       const cfg = settings.weekdays[d];
       const startInput = document.querySelector(`.wd-start[data-day="${d}"]`);
       const endInput = document.querySelector(`.wd-end[data-day="${d}"]`);
+      const breakInput = document.querySelector(`.wd-break[data-day="${d}"]`);
       if(startInput) startInput.value = cfg.start;
       if(endInput) endInput.value = cfg.end;
+      if(breakInput) breakInput.value = cfg.breakMinutes || 0;
     }
     document.getElementById('periodStartDayInput').value = settings.periodStartDay;
     document.querySelectorAll('.layout-opt').forEach(btn => {
@@ -1748,12 +1760,14 @@
     await renderPeriod();
   }
 
-  document.querySelectorAll('.wd-start, .wd-end').forEach(input => {
+  document.querySelectorAll('.wd-start, .wd-end, .wd-break').forEach(input => {
     input.addEventListener('change', async () => {
       const day = input.getAttribute('data-day');
       const startVal = document.querySelector(`.wd-start[data-day="${day}"]`).value || '00:00';
       const endVal = document.querySelector(`.wd-end[data-day="${day}"]`).value || '00:00';
-      settings.weekdays[day] = { start: startVal, end: endVal };
+      let breakVal = parseInt(document.querySelector(`.wd-break[data-day="${day}"]`).value, 10);
+      if(isNaN(breakVal) || breakVal < 0) breakVal = 0;
+      settings.weekdays[day] = { start: startVal, end: endVal, breakMinutes: breakVal };
       saveSettings();
       await refreshAll();
     });
